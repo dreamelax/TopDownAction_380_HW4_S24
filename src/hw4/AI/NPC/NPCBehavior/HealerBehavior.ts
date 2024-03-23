@@ -45,9 +45,33 @@ export default class HealerBehavior extends NPCBehavior  {
         let lowhealthAlly = new BasicFinder<Battler>(null, BattlerActiveFilter(), BattlerGroupFilter([owner.battleGroup]));
         this.addStatus(HealerStatuses.ALLY_EXISTS, new TargetExists(scene.getBattlers(), lowhealthAlly));
         
-        /* ######### Add all healer actions ######## */
+        /* ######### Add all healer actions ######## */         // TODO configure the rest of the healer actions
 
-        // TODO configure the rest of the healer actions
+        // Initialize the PICKUP_HPACK action
+        let pickupHpack = new PickupItem(this, this.owner);
+        pickupHpack.targets = scene.getHealthpacks();  
+        pickupHpack.targetFinder = new BasicFinder<Item>(ClosestPositioned(this.owner), ItemFilter(Healthpack), VisibleItemFilter());
+        pickupHpack.addPrecondition(HealerStatuses.HPACK_EXISTS);
+        pickupHpack.addEffect(HealerStatuses.HAS_HPACK);
+        pickupHpack.cost = 4; 
+        this.addState(HealerActions.PICKUP_HPACK, pickupHpack);
+
+        // Initialize the USE_HPACK action
+        let useHpack = new UseHealthpack(this, this.owner);
+        useHpack.targets = scene.getBattlers(); 
+        useHpack.targetFinder = new BasicFinder<Battler>(
+            ClosestPositioned(this.owner),
+            BattlerActiveFilter(),
+            BattlerGroupFilter([this.owner.battleGroup]),
+            BattlerHealthFilter(0, 0.5 * owner.maxHealth) 
+        );
+        useHpack.addPrecondition(HealerStatuses.ALLY_EXISTS);
+        useHpack.addPrecondition(HealerStatuses.HAS_HPACK);
+        useHpack.addEffect(HealerStatuses.GOAL);
+        useHpack.cost = 1; 
+        this.addState(HealerActions.USE_HPACK, useHpack);
+        // why do the healers just stop healing after they've healed only one person?
+
 
         // Idle action
         let idle = new Idle(this, this.owner);

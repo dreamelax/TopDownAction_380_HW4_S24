@@ -7,6 +7,7 @@ import Finder from "../../../GameSystems/Searching/Finder";
 import { TargetableEntity } from "../../../GameSystems/Targeting/TargetableEntity";
 import BasicFinder from "../../../GameSystems/Searching/BasicFinder";
 import NavigationPath from "../../../../Wolfie2D/Pathfinding/NavigationPath";
+import Vec2 from "../../../../Wolfie2D/DataTypes/Vec2";
 
 /**
  * An abstract GoapAction for an NPC. All NPC actions consist of doing three things:
@@ -54,8 +55,25 @@ export default abstract class NPCAction extends GoapAction {
         }
     }
 
+    // public update(deltaT: number): void {
+    //     // TODO get the NPCs to move on their paths
+    // }
+
     public update(deltaT: number): void {
-        // TODO get the NPCs to move on their paths
+        if (this._path && !this._path.isDone()) {
+            const nextPoint: Vec2 = this._path.next();
+    
+            if (nextPoint) {
+                //  the direction to the next point
+                const direction: Vec2 = this.actor.position.dirTo(nextPoint).normalize();
+                this.actor.move(direction.scale(this.actor.speed * deltaT));
+                this._path.handlePathProgress(this.actor);
+    
+                if (this._path.isDone()) {
+                    this.performAction(this._target);
+                }
+            }
+        }
     }
 
     public abstract performAction(target: TargetableEntity): void;

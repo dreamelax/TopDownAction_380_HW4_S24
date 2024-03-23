@@ -22,6 +22,20 @@ export default class UseHealthpack extends NPCAction {
     }
 
     public performAction(target: Battler): void {
+        if (this._target) {
+            // Find the healthpack in the actor's inventory
+            const healthpack = this.actor.inventory.find(item => item instanceof Healthpack) as Healthpack | null;
+
+            if (healthpack) {
+                // Increment the target's health
+                this._target.health = Math.min(this._target.health + healthpack.health, this._target.maxHealth);
+
+                // Remove the healthpack from the actor's inventory
+                this.actor.inventory.remove(healthpack.id);
+
+                console.log(`Healthpack used on ${this._target.id}: Health is now ${this._target.health}`);
+            }
+        }
 
     }
 
